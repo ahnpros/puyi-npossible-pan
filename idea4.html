@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>나한테만 온 메일 표시 (가상 자료)</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #222; }
+h1 { font-size: 20px; margin-bottom: 4px; }
+.meta { color: #666; font-size: 13px; }
+.bar { display: flex; gap: 8px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+button { padding: 6px 12px; border: 1px solid #888; background: #fff; border-radius: 6px; cursor: pointer; }
+button[aria-pressed="true"] { background: #222; color: #fff; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { border-bottom: 1px solid #ddd; padding: 10px 0; }
+.subject { font-weight: 600; }
+.tag { font-size: 12px; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+.tag.only { background: #e7f0fb; color: #1d4f8a; }
+.tag.group { background: #f2f2f2; color: #555; }
+footer { margin-top: 24px; font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+<h1>받은 메일 목록</h1>
+<p class="meta">이 페이지의 메일, 보낸 사람, 받는 사람 수는 모두 가상 자료예요.</p>
+<div class="bar">
+  <button id="f-all" aria-pressed="true">전체</button>
+  <button id="f-only" aria-pressed="false">나한테만 온 것만</button>
+  <span id="count" class="meta"></span>
+</div>
+<ul id="list"></ul>
+<footer>이 페이지의 글과 자료는 CC BY-SA 4.0으로 공유해요.</footer>
+<script>
+const mails = [
+  { from: "회사 공지", subject: "11월 점검 안내 (가상)", to: 120 },
+  { from: "김하린", subject: "견적서 확인 부탁드려요", to: 1 },
+  { from: "구독 뉴스레터", subject: "이번 주 추천 기사 모음 (가상)", to: 3400 },
+  { from: "정우진", subject: "회의 자료 보내 드려요", to: 1 },
+  { from: "인사팀", subject: "연말 일정 공유 (가상)", to: 86 },
+  { from: "박소윤", subject: "사진 파일 두 장 보내요", to: 4 }
+];
+let onlyMine = false;
+
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const rows = mails.filter(m => !onlyMine || m.to === 1);
+  rows.forEach(m => {
+    const li = document.createElement("li");
+    const subj = document.createElement("div");
+    subj.className = "subject";
+    subj.textContent = m.subject;
+    const tag = document.createElement("span");
+    tag.className = m.to === 1 ? "tag only" : "tag group";
+    tag.textContent = m.to === 1 ? "나한테만" : "받는 사람 " + m.to + "명";
+    subj.appendChild(tag);
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = m.from;
+    li.appendChild(subj);
+    li.appendChild(meta);
+    list.appendChild(li);
+  });
+  document.getElementById("count").textContent = rows.length + "통 표시";
+  document.getElementById("f-all").setAttribute("aria-pressed", String(!onlyMine));
+  document.getElementById("f-only").setAttribute("aria-pressed", String(onlyMine));
+}
+
+document.getElementById("f-all").addEventListener("click", () => { onlyMine = false; render(); });
+document.getElementById("f-only").addEventListener("click", () => { onlyMine = true; render(); });
+render();
+</script>
+</body>
+</html>

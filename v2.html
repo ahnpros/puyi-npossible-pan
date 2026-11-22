@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>공개 범위, 고르면 누가 보는지 숫자로 (v2)</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f6f6f4;color:#222}
+main{max-width:640px;margin:0 auto;padding:24px}
+h1{font-size:20px}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:16px;margin-top:12px}
+label{display:block;padding:10px;border:1px solid #ccc;border-radius:8px;margin:8px 0;cursor:pointer}
+label.sel{border-color:#2563eb;background:#eef4ff}
+.reach{font-size:22px;font-weight:700;margin:6px 0}
+.note{font-size:13px;color:#555}
+textarea{width:100%;height:70px}
+button{padding:10px 16px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}
+footer{font-size:12px;color:#666;margin-top:24px}
+</style></head><body><main>
+<h1>공개 범위를 고르면, 누가 볼 수 있고 실제로 누가 볼까요?</h1>
+<p class="note">모든 수치는 가상 예시 데이터입니다. 실제 사용자 수가 아닙니다.</p>
+<div class="card">
+<strong>1. 글 제목 (예시)</strong>
+<textarea id="draft">처음 올리는 글이에요</textarea>
+</div>
+<div class="card">
+<strong>2. 공개 범위를 고르세요</strong>
+<div id="opts"></div>
+</div>
+<div class="card" id="preview">
+<div class="note">열람 가능 인원 (이 범위에서 글을 볼 수 있는 사람 수)</div>
+<div class="reach" id="canSee">-</div>
+<div class="note">실제로 볼 것으로 예상되는 인원 (최근 활동 기준 가상 추정치)</div>
+<div class="reach" id="likelySee">-</div>
+<div class="note" id="desc"></div>
+<div class="note" id="bar"></div>
+<div class="note"><b>산정 기준(가상):</b> 열람 가능 = 범위 안의 모든 계정 수. 실제 예상 = 열람 가능 중 최근 30일 접속 비율을 곱한 값. 차단·탈퇴 계정은 제외합니다.</div>
+</div>
+<div class="card">
+<button id="post">게시 전 최종 확인</button>
+<p class="note" id="confirm"></p>
+</div>
+<footer>이 페이지의 텍스트와 자료는 CC BY-SA 4.0 으로 공개됩니다. 코드 예시는 GPL 계열입니다.</footer>
+</main>
+<script>
+const OPTS = [
+ {id:"me", label:"나만 보기", can:1, likely:1, desc:"작성자 본인만 봅니다."},
+ {id:"friends", label:"친구 공개", can:120, likely:38, desc:"가상 예시: 맞팔 친구 120명 중 최근 활동이 있는 약 38명이 볼 가능성이 높습니다."},
+ {id:"board", label:"게시판 전체", can:4800, likely:610, desc:"가상 예시: 게시판 방문자 4,800명 중 약 610명이 목록에서 볼 가능성이 높습니다."},
+ {id:"all", label:"전체 공개 (검색 노출 포함)", can:52000, likely:2100, desc:"가상 예시: 검색과 추천을 통해 52,000명이 볼 수 있지만, 실제로 볼 것으로 예상되는 수는 약 2,100명입니다."}
+];
+let sel = null;
+const optsEl = document.getElementById("opts");
+OPTS.forEach(o => {
+  const l = document.createElement("label");
+  l.innerHTML = '<input type="radio" name="scope" value="'+o.id+'"> '+o.label;
+  l.onclick = () => choose(o.id, l);
+  optsEl.appendChild(l);
+});
+function fmt(n){return n.toLocaleString("ko-KR");}
+function choose(id, el){
+  sel = OPTS.find(o=>o.id===id);
+  document.querySelectorAll("#opts label").forEach(x=>x.classList.remove("sel"));
+  el.classList.add("sel");
+  document.getElementById("canSee").textContent = "약 " + fmt(sel.can) + "명";
+  document.getElementById("likelySee").textContent = "약 " + fmt(sel.likely) + "명";
+  document.getElementById("desc").textContent = sel.desc;
+  const max = OPTS[OPTS.length-1].likely;
+  const pct = Math.max(2, Math.round(sel.likely / max * 100));
+  document.getElementById("bar").innerHTML = '<div style="height:8px;background:#e5e7eb;border-radius:4px"><div style="height:8px;width:'+pct+'%;background:#2563eb;border-radius:4px"></div></div>';
+  document.getElementById("confirm").textContent = "";
+}
+document.getElementById("post").onclick = () => {
+  if(!sel){ document.getElementById("confirm").textContent = "먼저 공개 범위를 고르세요."; return; }
+  document.getElementById("confirm").textContent = "확인: '" + sel.label + "' 로 게시하면 열람 가능 약 " + fmt(sel.can) + "명, 실제 예상 약 " + fmt(sel.likely) + "명입니다. (데모라서 실제로 게시되지 않습니다)";
+};
+</script></body></html>

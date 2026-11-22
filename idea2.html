@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>답장 온 메일만 모아 보기 (가상 자료)</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #222; }
+h1 { font-size: 20px; margin-bottom: 4px; }
+.meta { color: #666; font-size: 13px; }
+.bar { display: flex; gap: 8px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+button { padding: 6px 12px; border: 1px solid #888; background: #fff; border-radius: 6px; cursor: pointer; }
+button[aria-pressed="true"] { background: #222; color: #fff; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { border-bottom: 1px solid #ddd; padding: 10px 0; }
+.subject { font-weight: 600; }
+.tag { font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #e7f5ec; color: #1d6b3a; margin-left: 6px; }
+.tag.wait { background: #f2f2f2; color: #555; }
+footer { margin-top: 24px; font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+<h1>보낸 메일 중 답장 온 것만</h1>
+<p class="meta">이 페이지의 메일, 이름, 시간은 모두 가상 자료예요.</p>
+<div class="bar">
+  <button id="f-all" aria-pressed="true">전체</button>
+  <button id="f-replied" aria-pressed="false">답장 온 것만</button>
+  <span id="count" class="meta"></span>
+</div>
+<ul id="list"></ul>
+<footer>이 페이지의 글과 자료는 CC BY-SA 4.0으로 공유해요.</footer>
+<script>
+const mails = [
+  { to: "김하린", subject: "견적서 다시 보내 드려요", sent: "11/18 09:12", replied: "11/18 10:02" },
+  { to: "정우진", subject: "회의 자료 확인 부탁드려요", sent: "11/19 14:30", replied: null },
+  { to: "개발팀 공지", subject: "11월 점검 안내 (가상)", sent: "11/20 08:00", replied: "11/20 08:40" },
+  { to: "박소윤", subject: "사진 파일 두 장 보내요", sent: "11/20 17:05", replied: null },
+  { to: "이도현", subject: "주말 일정 맞춰 볼까요", sent: "11/21 11:15", replied: "11/21 12:01" }
+];
+let onlyReplied = false;
+
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const rows = mails.filter(m => !onlyReplied || m.replied);
+  rows.forEach(m => {
+    const li = document.createElement("li");
+    const subj = document.createElement("div");
+    subj.className = "subject";
+    subj.textContent = m.subject;
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = m.to + ", 보냄 " + m.sent;
+    const tag = document.createElement("span");
+    tag.className = m.replied ? "tag" : "tag wait";
+    tag.textContent = m.replied ? "답장 " + m.replied : "답장 대기";
+    subj.appendChild(tag);
+    li.appendChild(subj);
+    li.appendChild(meta);
+    list.appendChild(li);
+  });
+  document.getElementById("count").textContent = rows.length + "통 표시";
+  document.getElementById("f-all").setAttribute("aria-pressed", String(!onlyReplied));
+  document.getElementById("f-replied").setAttribute("aria-pressed", String(onlyReplied));
+}
+
+document.getElementById("f-all").addEventListener("click", () => { onlyReplied = false; render(); });
+document.getElementById("f-replied").addEventListener("click", () => { onlyReplied = true; render(); });
+render();
+</script>
+</body>
+</html>

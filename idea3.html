@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>차단한 사람의 글은 목록에서 접기 (가상 자료)</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; padding: 0 16px; color: #222; }
+h1 { font-size: 20px; margin-bottom: 4px; }
+.meta { color: #666; font-size: 13px; }
+.bar { display: flex; gap: 8px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+button { padding: 6px 12px; border: 1px solid #888; background: #fff; border-radius: 6px; cursor: pointer; }
+ul { list-style: none; padding: 0; margin: 0; }
+li { border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+li.hidden-post { opacity: 0.55; background: #fafafa; }
+.title { font-weight: 600; }
+footer { margin-top: 24px; font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+<h1>판 글 목록</h1>
+<p class="meta">이 페이지의 글과 글쓴이는 모두 가상 자료예요.</p>
+<div class="bar">
+  <span id="hiddenInfo" class="meta"></span>
+  <button id="toggleReveal" type="button" aria-pressed="false">숨긴 글 펼쳐 보기</button>
+</div>
+<ul id="list"></ul>
+<footer>이 페이지의 글과 자료는 CC BY-SA 4.0으로 공유해요.</footer>
+<script>
+const posts = [
+  { author: "가상 사용자 1", title: "이번 주 날씨가 이상해요" },
+  { author: "가상 사용자 2", title: "점심 메뉴 추천 받아요" },
+  { author: "가상 사용자 1", title: "노트북 배터리 오래 가는 설정" },
+  { author: "가상 사용자 3", title: "독서 모임 후기" },
+  { author: "가상 사용자 4", title: "택배가 두 번 왔어요" },
+  { author: "가상 사용자 2", title: "주차 고민 들어 주세요" }
+];
+const blocked = new Set();
+let reveal = false;
+
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const hiddenCount = posts.filter(p => blocked.has(p.author)).length;
+  posts.forEach(p => {
+    const isHidden = blocked.has(p.author);
+    if (isHidden && !reveal) return;
+    const li = document.createElement("li");
+    if (isHidden) li.className = "hidden-post";
+    const left = document.createElement("div");
+    const t = document.createElement("div");
+    t.className = "title";
+    t.textContent = p.title;
+    const a = document.createElement("div");
+    a.className = "meta";
+    a.textContent = p.author + (isHidden ? " (차단됨)" : "");
+    left.appendChild(t);
+    left.appendChild(a);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = isHidden ? "차단 풀기" : "차단";
+    btn.addEventListener("click", () => {
+      if (blocked.has(p.author)) blocked.delete(p.author); else blocked.add(p.author);
+      render();
+    });
+    li.appendChild(left);
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+  document.getElementById("hiddenInfo").textContent = "숨긴 글 " + hiddenCount + "개";
+  const tb = document.getElementById("toggleReveal");
+  tb.setAttribute("aria-pressed", String(reveal));
+  tb.textContent = reveal ? "숨긴 글 접기" : "숨긴 글 펼쳐 보기";
+}
+
+document.getElementById("toggleReveal").addEventListener("click", () => { reveal = !reveal; render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>두 번 눌러도 알림은 한 번만 (가상 데모)</title>
+<style>
+body{font-family:system-ui,-apple-system,"Malgun Gothic",sans-serif;max-width:640px;margin:32px auto;padding:0 16px;color:#222;line-height:1.6}
+button{font-size:15px;padding:10px 14px;margin:4px 6px 4px 0;border:1px solid #333;background:#fff;border-radius:6px;cursor:pointer}
+button.primary{background:#222;color:#fff}
+.box{border:1px solid #ccc;border-radius:8px;padding:12px 16px;margin:14px 0}
+.notice{font-size:13px;color:#444;background:#f2f2f2;padding:8px 10px;border-radius:6px}
+ul{padding-left:18px}
+li{margin:4px 0}
+.muted{color:#666;font-size:13px}
+code{background:#f2f2f2;padding:1px 4px;border-radius:4px}
+</style>
+</head>
+<body>
+<p class="notice">이 페이지의 요청, 사용자, 알림은 모두 가상 자료입니다. 실제 서비스와 관계가 없습니다. 글과 자료는 CC BY 라이선스입니다.</p>
+
+<h1>두 번 눌러도 알림은 한 번만</h1>
+<p>버튼을 두 번 누르거나 응답이 늦어 요청이 다시 가도, 서버가 같은 요청 ID를 확인해 알림을 한 번만 만듭니다.</p>
+
+<div class="box">
+  <h2>가상 서버 상태</h2>
+  <p>받은 요청 <span id="reqCount">0</span>건 ,  만든 알림 <span id="notiCount">0</span>건</p>
+  <ul id="log"><li class="muted">아직 요청이 없습니다.</li></ul>
+</div>
+
+<div>
+  <button class="primary" id="btnSafe">알림 보내기 (요청 ID 사용, 두 번 전송)</button>
+  <button id="btnNaive">알림 보내기 (요청 ID 없이, 두 번 전송)</button>
+  <button id="btnReset">초기화</button>
+</div>
+
+<div class="box">
+  <h2>동작 방식</h2>
+  <ul>
+    <li>버튼을 누를 때마다 클라이언트가 요청 ID를 한 번 만듭니다.</li>
+    <li>중복 클릭과 재시도는 같은 요청 ID를 그대로 보냅니다.</li>
+    <li>서버는 처리한 요청 ID를 저장해 두고, 같은 ID가 오면 알림을 만들지 않습니다.</li>
+  </ul>
+  <p class="muted">요청 ID가 없으면 서버는 두 요청을 서로 다른 요청으로 보고 알림을 두 번 만듭니다.</p>
+</div>
+
+<script>
+(function () {
+  var processed = {};
+  var notiCount = 0;
+  var reqCount = 0;
+
+  var reqEl = document.getElementById('reqCount');
+  var notiEl = document.getElementById('notiCount');
+  var logEl = document.getElementById('log');
+
+  function newId() {
+    return 'req-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function addLog(text) {
+    if (logEl.children.length === 1 && logEl.children[0].className === 'muted') {
+      logEl.innerHTML = '';
+    }
+    var li = document.createElement('li');
+    li.textContent = text;
+    logEl.appendChild(li);
+  }
+
+  function render() {
+    reqEl.textContent = reqCount;
+    notiEl.textContent = notiCount;
+  }
+
+  // 가상 서버: 요청 ID를 기억하고 같은 ID는 한 번만 처리합니다.
+  function fakeServer(requestId) {
+    reqCount++;
+    if (requestId) {
+      if (processed[requestId]) {
+        addLog('요청 ' + requestId + ': 이미 처리한 요청이라 알림을 만들지 않았습니다.');
+        render();
+        return;
+      }
+      processed[requestId] = true;
+      notiCount++;
+      addLog('요청 ' + requestId + ': 알림 1건을 만들었습니다.');
+    } else {
+      notiCount++;
+      addLog('요청 ID 없음: 알림 1건을 만들었습니다.');
+    }
+    render();
+  }
+
+  document.getElementById('btnSafe').addEventListener('click', function () {
+    var id = newId();
+    fakeServer(id);
+    fakeServer(id);
+  });
+
+  document.getElementById('btnNaive').addEventListener('click', function () {
+    fakeServer(null);
+    fakeServer(null);
+  });
+
+  document.getElementById('btnReset').addEventListener('click', function () {
+    processed = {};
+    notiCount = 0;
+    reqCount = 0;
+    logEl.innerHTML = '<li class="muted">아직 요청이 없습니다.</li>';
+    render();
+  });
+})();
+</script>
+</body>
+</html>
